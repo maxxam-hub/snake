@@ -2,33 +2,41 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef struct {
-    Snode back;
+struct Snode{
+    struct Snode *back;
     int x;
     int y;
-} Snode;
+};
 
-void fillArray(int height, int width, int arr[height][width]);
 void generateCoordsApple(int *xApple, int *yApple);
-void initSnakeNode(Snode *sNode, int x, int y);
-void fillArraySnake(Snode *startNode, int **arr);
+void initSnakeNode(struct Snode *sNode, int x, int y);
+void initSnake(struct Snode *prevNode, int length);
+void fillArraySnake(struct Snode *startNode, int **arr);
+int** initField(int height, int width);
+void freeField(int **arr, int height);
 
 int main() {
     srand(time(NULL));
     int k = 0;
-    int field[25][25];
+    printf("0");
+    int **field = initField(25, 25);
+    printf("1");
     int x = 0, y = 0;
     int xApple = 0, yApple = 0;
-    Snode *sHead; 
-    generateCoordsApple(&xApple, &yApple);
-    initSnakeNode(sHead, x, y);
-    initSnake(sHead, 5);
-    int isAppleOnField = 0;
+    struct Snode *sHead = malloc(sizeof(struct Snode)); 
     
-    fillArray(25, 25, field);
-    fillArraySnake(sHead, field);
     printf("Choose coordinats of the beginning from 0 to 24\n");
     scanf("%d %d", &x, &y);
+
+    generateCoordsApple(&xApple, &yApple);
+    printf("3");
+    initSnakeNode(sHead, x, y);
+    printf("4");
+    initSnake(sHead, 5);
+    printf("5");
+    int isAppleOnField = 0;
+    
+    fillArraySnake(sHead, field);
     while (getchar()) {
         
         for (int i = 0; i < 25; i++) {
@@ -45,15 +53,8 @@ int main() {
         }
         printf("\033[H\033[J");
     }
+    free(field);
     return 0;
-}
-
-void fillArray(int height, int width, int arr[height][width]) {
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            arr[i][j] = 0;
-        }
-    }
 }
 
 void generateCoordsApple(int *xApple, int *yApple) {
@@ -61,33 +62,43 @@ void generateCoordsApple(int *xApple, int *yApple) {
     *yApple = rand() % 25;
 }
 
-void initSnakeNode(Snode *sNode, int x, int y) {
+void initSnakeNode(struct Snode *sNode, int x, int y) {
     sNode->x = x;
     sNode->y = y;
     sNode->back = NULL;
 }
 
-void putBackNode(Snode *sNode, Snode *backNode) {
-    sNode->back = *backNode;
-}
+void initSnake(struct Snode *sHead, int length) {
+    struct Snode *current = sHead;
 
-void initSnake(Snode *prevNode, int length) {
-    Snode *newNode;
-    prevNode->back = *newNode;
-    for (int i = 0; i < length; i++) {
-        newNode->x = prevNode->x;
-        newNode->y = prevNode->y + 1;
-        newNode->back = NULL;
-        prevNode = newNode;
+    for (int i = 1; i < length; i++) {
+        struct Snode *nextNode = malloc(sizeof(struct Snode));
+        initSnakeNode(nextNode, sHead->x, sHead->y + i);
+
+        current->back = nextNode;
+        current = nextNode;
     }
 }
 
-void fillArraySnake(Snode *startNode, int **arr) {
-    Snode *tempNode = startNode;
-    Snode *backNode = startNode->back;
-    while (tempNode->back != NULL) {
-        arr[tempNode->x][tempNode->y] = 1;
-        tempNode = backNode;
-        backNode = tempNode->back;
+void fillArraySnake(struct Snode *startNode, int **arr) {
+    while (startNode->back != NULL) {
+        struct Snode *tempNode = startNode->back;
+        arr[startNode->y][startNode->x] = 1;
+        startNode = tempNode->back;
     }
+}
+
+int** initField(int height, int width) {
+    int **arr = calloc(height, sizeof(int*));
+    for (int i = 0; i < height; i++) {
+        arr[i] = calloc(width, sizeof(int));
+    }
+    return arr;
+}
+
+void freeField(int **arr, int height) {
+    for (int i = 0; i < height; i++) {
+        free(arr[i]);
+    }
+    free(arr);
 }
