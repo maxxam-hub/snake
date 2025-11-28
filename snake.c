@@ -11,6 +11,7 @@ struct Snode{
 void generateCoordsApple(int *xApple, int *yApple);
 void initSnakeNode(struct Snode *sNode, int x, int y);
 void initSnake(struct Snode *prevNode, int length);
+void moveHeadSnake(struct Snode *startNode, int dx, int dy);
 void fillArraySnake(struct Snode *startNode, int **arr);
 int** initField(int height, int width);
 void freeField(int **arr, int height);
@@ -37,8 +38,19 @@ int main() {
     int isAppleOnField = 0;
     
     fillArraySnake(sHead, field);
-    while (getchar()) {
+    char key = '$';
+    while (key != 'q') {
+
+        key = getchar();
+
+        if (key == 'a') moveHeadSnake(sHead, -1, 0);
+        else if (key == 'w') moveHeadSnake(sHead, 0, -1);
+        else if (key == 's') moveHeadSnake(sHead, 0, 1);
+        else if (key == 'd') moveHeadSnake(sHead, 1, 0);
+        else moveHeadSnake(sHead, 0, 0);
         
+        fillArraySnake(sHead, field);
+
         for (int i = 0; i < 25; i++) {
             for (int j = 0; j < 25; j++) {
                 if (field[i][j] == 1) {
@@ -71,7 +83,7 @@ void initSnakeNode(struct Snode *sNode, int x, int y) {
 void initSnake(struct Snode *sHead, int length) {
     struct Snode *current = sHead;
 
-    for (int i = 1; i < length; i++) {
+    for (int i = 1; i < length + 1; i++) {
         struct Snode *nextNode = malloc(sizeof(struct Snode));
         initSnakeNode(nextNode, sHead->x, sHead->y + i);
 
@@ -80,9 +92,32 @@ void initSnake(struct Snode *sHead, int length) {
     }
 }
 
+void moveHeadSnake(struct Snode *head, int dx, int dy) {
+    int prevX = head->x;
+    int prevY = head->y;
+
+    head->x += dx;
+    head->y += dy;
+
+    struct Snode *current = head->back;
+
+    while (current != NULL) {
+        int tempX = current->x;
+        int tempY = current->y;
+
+        current->x = prevX;
+        current->y = prevY;
+
+        prevX = tempX;
+        prevY = tempY;
+
+        current = current->back;
+    }
+}
+
 void fillArraySnake(struct Snode *startNode, int **arr) {
     while (startNode->back != NULL) {
-        struct Snode *tempNode = startNode->back;
+        struct Snode *tempNode = startNode;
         arr[startNode->y][startNode->x] = 1;
         startNode = tempNode->back;
     }
